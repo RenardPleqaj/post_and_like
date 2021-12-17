@@ -19,7 +19,7 @@
         <a href="/post/create">New Post</a>
     </div>
     <h1>Edit Post</h1>
-    <form:form action="/post/${id}/edit" method="post" modelAttribute="post">
+    <form:form action="/post/${post.id}/edit" method="post" modelAttribute="post">
     <input type="hidden" name="_method" value="put">
     <p>
         <form:label path="headline">Headline:</form:label>

@@ -38,14 +38,18 @@ public class PostController {
     }
     @PostMapping("/post/create")
     public String createPost(@Valid @ModelAttribute("newPost")Post post, BindingResult result,HttpSession session){
-        if(result.hasErrors()){
-            return "posts/new";
-        }else {
-            Long userId = ((Long) session.getAttribute("userId"));
-            User authenticatedUser = userService.findUserById(userId);
-            post.setUser(authenticatedUser);
-            postService.createUpdatePost(post);
-            return "redirect:/posts";
+        Long userId = ((Long) session.getAttribute("userId"));
+        if (userId == null) {
+            return "redirect:/login";
+        } else {
+            if (result.hasErrors()) {
+                return "posts/new";
+            } else {
+                User authenticatedUser = userService.findUserById(userId);
+                post.setUser(authenticatedUser);
+                postService.createUpdatePost(post);
+                return "redirect:/posts";
+            }
         }
     }
     @GetMapping("/posts")
@@ -62,9 +66,14 @@ public class PostController {
         }
     }
     @DeleteMapping("/post/{id}")
-    public String deletePost(@PathVariable("id")Long id){
-        postService.deletePost(id);
-        return "redirect:/posts";
+    public String deletePost(@PathVariable("id")Long id,HttpSession session){
+        Long userId = ((Long) session.getAttribute("userId"));
+        if (userId == null) {
+            return "redirect:/login";
+        } else {
+            postService.deletePost(id);
+            return "redirect:/posts";
+        }
     }
 
     @GetMapping("/post/{id}/details")
@@ -83,15 +92,23 @@ public class PostController {
     @PostMapping("/post/{id}/like")
     public String likePost(@ModelAttribute("like")Like like,@PathVariable("id")Long postId,HttpSession session,Model model){
         Long userId = ((Long) session.getAttribute("userId"));
-        likeService.createLike(postId,userId);
-        return "redirect:/posts";
+        if (userId == null) {
+            return "redirect:/login";
+        } else {
+            likeService.createLike(postId, userId);
+            return "redirect:/posts";
+        }
     }
     @DeleteMapping("/post/{id}/dislike")
     public String dislike(@PathVariable("id")Long postId,HttpSession session){
         Long userId = ((Long) session.getAttribute("userId"));
-        Like like=likeService.findLike(postId,userId);
-        likeService.deleteLike(like.getId());
-        return "redirect:/posts";
+        if (userId == null) {
+            return "redirect:/login";
+        } else {
+            Like like = likeService.findLike(postId, userId);
+            likeService.deleteLike(like.getId());
+            return "redirect:/posts";
+        }
     }
 
     @GetMapping("/post/{id}/edit")
@@ -100,7 +117,8 @@ public class PostController {
         if(userId==null){
             return "redirect:/login";
         }else{
-
+            User authenticatedUser = userService.findUserById(userId);
+            model.addAttribute("user",authenticatedUser);
             post= postService.findPost(postId);
             model.addAttribute("post",post);
             return "posts/edit";
@@ -108,12 +126,20 @@ public class PostController {
 
     }
     @PutMapping("/post/{id}/edit")
-    public  String editPost(@Valid @ModelAttribute("post")Post post,BindingResult result){
-        if (result.hasErrors()) {
-            return "posts/edit";
+    public  String editPost(@Valid @ModelAttribute("post")Post post,BindingResult result,HttpSession session) {
+        Long userId = ((Long) session.getAttribute("userId"));
+        if (userId == null) {
+            return "redirect:/login";
         } else {
-            postService.createUpdatePost(post);
-            return "redirect:/post/{id}/edit";
+            if (result.hasErrors()) {
+                return "posts/edit";
+            } else {
+
+                User authenticatedUser = userService.findUserById(userId);
+                post.setUser(authenticatedUser);
+                postService.createUpdatePost(post);
+                return "redirect:/post/{id}/edit";
+            }
         }
     }
 
